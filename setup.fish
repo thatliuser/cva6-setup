@@ -3,11 +3,13 @@
 source lib/deps.fish
 source lib/log.fish
 
-function make_dir --description "Creates a directory unless it already exists"
+function make_dir --description "Creates a directory, unless it already exists."
     set dir "$argv[1]"
     if ! test -e "$dir"
         log "Creating directory $dir"
         mkdir --parents "$dir"
+    else
+        warn "Directory $dir already exists, skipping"
     end
 end
 
@@ -108,7 +110,7 @@ function main
     ## The Linux kernel image for the simulator (and Spike!)
     log "Downloading Linux kernel image"
     # We need to follow GitHub's redirect.
-    curl --output-dir "$RISCV" --remote-name --location \
+    curl --output-dir "$RISCV" --output linux --location \
         https://github.com/openhwgroup/cva6-sdk/releases/download/v0.3.0/bbl
 
     ## The CPU itself.
