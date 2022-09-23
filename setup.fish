@@ -24,7 +24,7 @@ function clone_github --description "Clones a GitHub repository into the right d
         # Commit specified; switch to the right commit.
         cd "$RISCV/$repo"
         log "Switching to commit $commit"
-        git checkout $commit
+        git checkout "$commit"
         cd "$root"
     end
 end
@@ -56,7 +56,7 @@ function main
     end
 
     # Make the directory for dependencies if it doesn't exist.
-    make_dir $RISCV
+    make_dir "$RISCV"
 
     ## Official RISC-V ISA simulator (Spike) and other libraries we need.
     clone_github riscv riscv-isa-sim 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
@@ -74,20 +74,9 @@ function main
     log "Building ISA simulator"
     make --jobs="$JOBS" install
 
-    ## The RISC-V proxy kernel and Berkeley boot loader. Useful
-    ## for running on our simulator later!
-    clone_github riscv riscv-pk
-
-    log "Configuring proxy kernel"
-    cd "$RISCV/riscv-pk"
-    make_dir build
-    cd build
-    PATH="$RISCV/bin:$PATH" ../configure --prefix="$RISCV" --host=riscv64-unknown-elf
-
-    log "Building proxy kernel"
-    PATH="$RISCV/bin:$PATH" make --jobs="$JOBS" install
-
-    ## The RISC-V GCC toolchain we need to compile a userspace "Hello World" program.
+    ## The RISC-V GCC toolchain we need to compile:
+    ## - The userspace "Hello World" program.
+    ## - The proxy kernel.
     log "Downloading RISC-V compiler toolchain"
     set gcc riscv64-unknown-elf-gcc-8.3.0-2020.04.0-x86_64-linux-ubuntu14
     curl --output-dir "$RISCV" --remote-name \
@@ -98,6 +87,19 @@ function main
     cp --recursive $RISCV/$gcc/* "$RISCV"
     rm --recursive --force "$RISCV/$gcc"
     rm --force "$RISCV/$gcc.tar.gz"
+
+    ## The RISC-V proxy kernel and Berkeley boot loader. 
+    ## Useful for running on our simulator later!
+    clone_github riscv riscv-pk
+
+    log "Configuring proxy kernel"
+    cd "$RISCV/riscv-pk"
+    make_dir build
+    cd build
+    PATH="$RISCV/bin:$PATH" ../configure --prefix="$RISCV" --host=riscv64-unknown-elf
+
+    log "Building proxy kernel"
+    PATH="$RISCV/bin:$PATH" make --jobs="$JOBS" install
 
     ## The userspace "Hello World" program itself.
     log "Compiling userspace \"Hello World\" program"
@@ -114,13 +116,16 @@ function main
 
     log "Patching CVA6 simulator"
     cd "$RISCV/cva6"
-    # Comments out some code that stops the simulator
-    # after hitting some instruction (that shows up in the Hello World program)
-    # or after it simulates too many cycles. Not very good if you want to simulate
-    # the entire Linux kernel!
+    # Comments out some code that stops the simulator after:
+    # - Hitting an unknown instruction (that shows up in the Hello World program)
+    # - Simulating too many cycles. 
+    # Neither condition is very good if you want to run a Linux kernel!
     git apply "$root/misc/cva6.patch"
 
     log "Compiling CVA6 simulator"
+    # Why are there so many warnings in this code!?!? Are they just bad hardware designers??
+    # I can't really tell because I don't have experience,
+    # but this looks like a lot of bad practice to me.
     NUM_JOBS=$JOBS make verilate
 
     log "Done! You can now run `run.fish` to demonstrate the simulator's capabilities!"
