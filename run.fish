@@ -68,15 +68,18 @@ function main
     log "Be patient when running it!"
     log "Also, keep in mind that the linux demo isn't proven to work on CVA."
 
-    if test (count $argv) -eq 2
-        set driver (
+    if test (count $argv) -ne 2
+        bad_usage
+    end
+
+    set driver (
             for pair in (drivers)
                 if test "$argv[1]" = (get_key "$pair")
                     echo "$(get_val $pair)"
                 end
             end
         )
-        set demo (
+    set demo (
             for pair in (demos)
                 if test "$argv[2]" = (get_key "$pair")
                     echo "$(get_val $pair)"
@@ -84,18 +87,15 @@ function main
             end
         )
 
-        if test "$driver" = "" | test "$demo" = ""
-            error "Couldn't find a matching driver and/or demo!"
-            bad_usage
-        else
-            log "Running command `$(basename $driver) $demo`..."
-            # Flaw: this can't handle filenames with spaces in them!
-            # This isn't very common but it's still a glaring problem.
-            "$driver" (string split " " "$demo")
-        end
-    else
+    if test "$driver" = "" | test "$demo" = ""
+        error "Couldn't find a matching driver and/or demo!"
         bad_usage
     end
+
+    log "Running command `$(basename $driver) $demo`..."
+    # Flaw: this can't handle filenames with spaces in them!
+    # This isn't very common but it's still a glaring problem.
+    "$driver" (string split " " "$demo")
 end
 
 main $argv
