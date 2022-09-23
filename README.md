@@ -23,6 +23,7 @@ A collection of [fish](https://fishshell.com/) scripts to download and configure
 # Important notices
 - This script was mostly made to run on my personal computer, which runs on `Arch Linux 5.19.10`. Other versions or distributions of Linux are not guaranteed to work as effectively, or even at all.
 - I strongly dislike when software is installed without explicit notice onto my computer. So, all dependencies that are downloaded when the script runs will be put into a controlled directory, which will live under the environment variable `RISCV`. The script will force you to set this variable before running.
+- The version of Verilator that is installed in `pacman.fish` is very specifically version `4.200`. This is because the CVA6 is very iffy about what version it is able to compile with, and the latest version does not compile it without some patches. I'm not certain that these patches actually fix the problem, so rolling back to an older version seems to be the safer bet.
 - __I have not personally seen any output from the Linux kernel image running on the CVA6 simulator.__
     - __HOWEVER__,
         - The CVA6 is designed to have nearly identical output to [Spike](https://github.com/riscv-software-src/riscv-isa-sim), RISC-V's official ISA emulator.
