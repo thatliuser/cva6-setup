@@ -5,17 +5,17 @@ source lib/log.fish
 ## This section is extremely overengineered. Sorry about that.
 function demos --description "Maps all demos to their binary paths."
     for pair in \
-        "linux=$RISCV/linux" \
-        "bbl=$RISCV/riscv64-unknown-elf/bin/bbl" \
-        "hello=$RISCV/riscv64-unknown-elf/bin/pk $RISCV/hello"
+        "linux=linux" \
+        "bbl=riscv64-unknown-elf/bin/bbl" \
+        "hello=riscv64-unknown-elf/bin/pk hello"
         echo "$pair"
     end
 end
 
 function drivers --description "Maps all drivers to their binary paths."
     for pair in \
-        "cva=$RISCV/cva6/work-ver/Variane_testharness" \
-        "spike=$RISCV/bin/spike"
+        "cva=cva6/work-ver/Variane_testharness" \
+        "spike=bin/spike"
         echo "$pair"
     end
 end
@@ -64,10 +64,6 @@ function main
         unsetup
     end
 
-    log "NOTE: The CVA driver is very, very slow compared to Spike."
-    log "Be patient when running it!"
-    log "Also, keep in mind that the linux demo isn't proven to work on CVA."
-
     if test (count $argv) -ne 2
         bad_usage
     end
@@ -92,10 +88,14 @@ function main
         bad_usage
     end
 
-    log "Running command `$(basename $driver) $demo`..."
-    # Flaw: this can't handle filenames with spaces in them!
-    # This isn't very common but it's still a glaring problem.
-    "$driver" (string split " " "$demo")
+    log "NOTE: The CVA driver is very, very slow compared to Spike."
+    log "Be patient when running it!"
+    log "Also, keep in mind that the linux demo isn't proven to work on CVA."
+    log "Running command $(basename $driver) $demo`..."
+
+    set args "$driver" (string split " " "$demo")
+    # All the arguments are relative paths from RISCV, so make them absolute!
+    "$RISCV/"$args
 end
 
 main $argv
