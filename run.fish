@@ -64,6 +64,10 @@ function main
         unsetup
     end
 
+    log "NOTE: The CVA driver is very, very slow compared to Spike."
+    log "Be patient when running it!"
+    log "Also, keep in mind that the linux demo isn't proven to work on CVA."
+
     if test (count $argv) -eq 2
         set driver (
             for pair in (drivers)
